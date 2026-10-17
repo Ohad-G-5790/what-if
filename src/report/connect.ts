@@ -5,7 +5,7 @@
  */
 
 export function mcpUrl(): string {
-  const origin = typeof location !== "undefined" && location.origin && location.origin !== "null" ? location.origin : "";
+  const origin = typeof location !== "undefined" && /^https?:$/.test(location.protocol) ? location.origin : "";
   return origin ? `${origin}/api/mcp` : "";
 }
 

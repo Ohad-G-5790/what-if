@@ -1,6 +1,6 @@
 import { deflateSync, inflateSync, strFromU8, strToU8 } from "fflate";
 import type { RawInputs, TemplateId } from "./engine/types.ts";
-import type { Reaction, Rehearsal } from "./sim/types.ts";
+import type { Reaction, Rehearsal, SegmentId } from "./sim/types.ts";
 
 /**
  * Everything needed to redraw an analysis (and its rehearsal) in the browser.
@@ -24,6 +24,8 @@ export interface ShareState {
     events: { beforeRound: number; text: string }[];
     reactions: Reaction[];
     interviews: Rehearsal["interviews"];
+    /** Set only when the rehearsal was started with a custom customer mix, so a rebuild picks the same people. */
+    customerMix?: Partial<Record<SegmentId, number>>;
   };
   observed?: Record<string, number>;
 }

@@ -227,6 +227,7 @@ const REPORT = `
 .wi-fig--row { padding: 8px 0; }
 .wi-working { margin-top: auto; padding-top: var(--wi-s3); }
 .wi-working-h { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--wi-muted); margin: 0 !important; }
+.wi-working-h .wi-chip { text-transform: none; letter-spacing: 0; font-weight: 600; }
 .wi-scn-net + .wi-maths { margin: 0 0 4px; }
 .wi-meter-wrap { margin: var(--wi-s2) 0 4px; max-width: 520px; }
 .wi-meter { height: 12px; border-radius: 12px; background: var(--wi-surface); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--wi-neg) 30%, var(--wi-line)); overflow: hidden; }
@@ -351,7 +352,7 @@ const REPORT = `
 .wi-readout-x { font-size: 15px; color: var(--wi-ink-2); flex-basis: 100%; }
 .wi-readout-x strong { color: var(--wi-ink); font-size: 17px; }
 .wi-readout-net { font-size: 28px; font-weight: 760; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-.wi-readout-net small { font-size: 14px; font-weight: 550; color: var(--wi-ink-2); letter-spacing: 0; }
+.wi-readout-net small { display: block; font-size: 14px; font-weight: 550; color: var(--wi-ink-2); letter-spacing: 0; }
 .wi-readout-month { font-size: 14px; color: var(--wi-ink-2); }
 .wi-readout-vs { font-size: 14px; color: var(--wi-ink-2); margin: 0 !important; }
 .wi-whybox { border-left: 3px solid var(--wi-brand); padding: 2px 0 2px var(--wi-s3); margin: 0 0 var(--wi-s2); }
@@ -559,6 +560,9 @@ button.wi-cell:hover { border-color: var(--wi-ink-2); }
   .wi-breakeven { padding: var(--wi-s4) var(--wi-s3); }
   .wi-step { padding-top: var(--wi-s5); }
   .wi-scn-net-v { font-size: 30px; }
+  .wi-timeline thead th:first-child { width: 22%; }
+  .wi-tl-who .wi-avatar { display: none; }
+  .wi-cell { font-size: 11.5px; padding: 6px 3px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .wi-report *, .wi-report *::before, .wi-report *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }

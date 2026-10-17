@@ -18,7 +18,8 @@ export function demoState(template: TemplateId = "lunch_offer", opts: { rehearsa
   if (opts.rehearsal === false) return state;
   try {
     const a = analyze(template, inputs, { demo: true, business: DEMO_BUSINESS, question: t.exampleQuestion, currency: "EUR" });
-    let r = startRehearsal(a, { seed: opts.seed ?? 7 });
+    // Seeds picked for a readable demo: lunch 23 (4 noticed, 3 tried, 2 came back, word of mouth), price change 8.
+    let r = startRehearsal(a, { seed: opts.seed ?? (template === "lunch_offer" ? 23 : 8) });
     // Play two rounds, then show "variable injection": the owner adds an event before round 3.
     for (let guard = 0; guard < 4 && r.status !== "done" && r.currentRound < 3; guard++) {
       const out = submitRound(r, ruleBasedReactions(r), "rule-based");

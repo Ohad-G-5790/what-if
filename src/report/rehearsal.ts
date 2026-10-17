@@ -123,7 +123,7 @@ function timeline(reh: RehearsalSummary, input: ReportInput): string {
             return `<td><span class="wi-cell ${isRun ? "is-running" : "is-future"}">${isRun ? "thinking…" : "–"}<span class="wi-sr">${isRun ? `round ${n} in progress` : `round ${n} not played yet`}</span></span></td>`;
           }
           const kind = isAway(c.action, c.actionLabel) ? "is-away" : c.positive ? "is-pos" : "is-neutral";
-          return `<td><button type="button" class="wi-cell ${kind}" data-wi-cell aria-controls="wi-thought" aria-label="Round ${n}, ${esc(p.name)}: ${esc(c.actionLabel)}. Show what they thought."><span class="wi-cell-label">${esc(c.actionLabel)}</span><span class="wi-cell-thought" hidden data-name="${esc(p.name)}" data-round="${n}" data-action="${esc(c.actionLabel)}">${esc(c.thought)}</span></button></td>`;
+          return `<td><button type="button" class="wi-cell ${kind}" data-wi-cell aria-controls="wi-thought" aria-label="Round ${n}, ${esc(p.name)}: ${esc(c.actionLabel)}. Show what they thought."><span class="wi-cell-label">${esc(kind === "is-away" ? "Not around" : c.actionLabel)}</span><span class="wi-cell-thought" hidden data-name="${esc(p.name)}" data-round="${n}" data-action="${esc(c.actionLabel)}">${esc(c.thought)}</span></button></td>`;
         })
         .join("");
       return `<tr><th scope="row"><span class="wi-tl-who">${avatar(p, "sm")}<span>${esc(firstName(p.name))}</span></span></th>${cells}</tr>`;

@@ -18,8 +18,10 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = join(ROOT, ".vercel", "output");
 const STATIC = join(OUT, "static");
 const FUNCTIONS = join(OUT, "functions");
-const PORT = Number(process.env.PORT || 3000);
-const args = new Set(process.argv.slice(2));
+const argv = process.argv.slice(2);
+const portArg = argv.indexOf("--port");
+const PORT = Number((portArg >= 0 && argv[portArg + 1]) || process.env.PORT || 3000);
+const args = new Set(argv);
 const SITE_URL = process.env.WHATIF_SITE_URL || `http://localhost:${PORT}`;
 
 const TYPES = {
