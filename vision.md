@@ -30,6 +30,14 @@ The first users are owners and managers of independent, neighborhood businesses 
 
 For the hackathon, the initial example is a Berlin café. The product can later adapt to other local businesses such as restaurants, shops, salons, and service providers, with appropriate data and assumptions for each category.
 
+## Fit with the hackathon theme: AI education for everyone
+
+What-IF is designed for **small-business owners**, one of the audiences named in the challenge. It helps them use AI to reason through a real business decision, even if they have no analytics or finance background.
+
+The learning should happen inside the experience. What-IF asks a focused follow-up when important information is missing, explains why changing an assumption changes the scenario, and helps the owner decide what evidence to collect next. The owner should leave with a clearer understanding of the decision and how AI can support it—not just a generated answer.
+
+For the event, narrow the audience further to **independent café owners** and demonstrate one concrete question. A working prototype and a short test with a real small-business owner are stronger proof than a broad feature list.
+
 ## The core experience
 
 1. **Ask a decision question.** The owner asks a question in ordinary language, such as “What if I run a weekday lunch offer?”
@@ -77,6 +85,19 @@ A general model can brainstorm possible outcomes. What-IF should make those poss
 
 The product's advantage is not simply generating advice. It is connecting the owner's data and context to an explainable decision and a feedback loop.
 
+## Reference project: MiroFish
+
+[MiroFish](https://github.com/666ghj/MiroFish) is a useful reference for the long-term “simulate possible futures” direction. Its README describes a general swarm-intelligence prediction engine that turns source materials into a simulated digital environment, where agents with different personas, memories, and behavior interact. Its workflow includes building a knowledge graph, configuring agents, running simulations, and generating a report; the project says its simulation engine is powered by [OASIS](https://github.com/camel-ai/oasis).
+
+What-IF takes inspiration from the idea of rehearsing decisions in a simulated environment, while focusing on the needs of small businesses. A future version could explore how representative customer or competitor behaviors might respond to a proposed change, using clearly stated scenario assumptions and relevant local evidence.
+
+MiroFish is a reference point, not a claim that What-IF already uses its software or can reliably predict real-world outcomes. What-IF should keep two kinds of output distinct:
+
+- **Quantitative scenarios:** transparent calculations from the owner's business inputs, such as estimated revenue, costs, or cash impact.
+- **Exploratory simulations:** possible behavior paths from modeled agents, used to surface questions and ideas—not treated as measured facts or probability-backed forecasts.
+
+For the hackathon MVP, use a small, transparent scenario model rather than attempting a large multi-agent simulation. Agent-based exploration can be evaluated later, after the team has a focused decision workflow and a way to compare scenarios with real outcomes.
+
 ## Hackathon MVP
 
 ### Goal
@@ -106,7 +127,9 @@ Use a small, understandable set of manually entered or sample values, such as:
 - one small test the owner could run before expanding the offer;
 - a simple measure to check after the test, such as redemptions or weekday customer count.
 
-For the prototype, use sample data or a short form. Do not imply that live bank, accounting, social-media, or competitor integrations are already available. Clearly label demo data and estimates.
+For a clear working demo, let the owner adjust one or two assumptions—such as the expected number of extra lunch customers—and immediately compare how the scenarios change. Include a plain-language “why this changed” explanation and a suggested next question or low-cost test. Use sample data or a short form. Do not imply that live bank, accounting, social-media, or competitor integrations are already available. Clearly label demo data and estimates.
+
+When possible, test the prototype with one real small-business owner. Check whether they understand the assumptions, find the scenario useful, and can identify a next step. Their feedback should guide the next iteration.
 
 ## Longer-term direction
 
@@ -146,4 +169,4 @@ Early success should be measured by whether owners understand and use the scenar
 
 ## Short pitch
 
-> Small businesses don’t need another dashboard full of numbers. They need to know what to try next. What-IF is an AI plugin that helps business owners explore possible futures before they make a decision. Ask “What if I change my prices?” or “What if I run this offer?” What-IF uses the business’s information to compare plausible outcomes, explain the assumptions, and suggest a low-risk next step. It doesn’t claim to predict the future—it helps owners make a more informed move.
+> Small businesses don’t need another dashboard full of numbers. They need to know what to try next. What-IF helps independent café owners use AI to explore a decision before they spend money. Ask, “What if I run a weekday lunch offer?” and compare a few possible outcomes using simple business numbers. What-IF explains what drives each scenario, lets the owner test an assumption, and suggests a low-risk next step. It doesn’t claim to predict the future—it helps owners understand their options and make a more informed move.
