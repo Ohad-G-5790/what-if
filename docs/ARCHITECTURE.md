@@ -4,7 +4,7 @@ This file is the contract the parallel build works against. Module owners implem
 
 ## What we ship (hackathon)
 
-1. **A public remote MCP server** at `https://<site>/api/mcp` (Streamable HTTP, stateless, no auth for now). Anyone can paste the URL into Claude (custom connector), ChatGPT (developer-mode connector), Cursor, VS Code, Claude Code (`claude mcp add --transport http what-if <url>`), or any MCP client.
+1. **A public remote MCP server** at `https://<site>/api/mcp` (Streamable HTTP, stateless; closed beta: an invite code via `?code=`, see "Closed beta" below). Anyone can paste the URL into Claude (custom connector), ChatGPT (developer-mode connector), Cursor, VS Code, Claude Code (`claude mcp add --transport http what-if <url>`), or any MCP client.
 2. **A skill** (`skill/what-if/`, downloadable as `what-if-skill.zip` from the site) that triggers on "what if…" questions, runs the coaching workflow, links to the MCP, and orchestrates the customer rehearsal (subagents where the host has them).
 3. **A website on Vercel** (`site/`): landing page that teaches the method visually, "add to your AI" instructions with the MCP URL, the skill download, a live demo, and the **report viewer** that draws every analysis as an interactive, visual lesson.
 
@@ -28,7 +28,9 @@ src/engine/            templates, inputs, analysis, experiment, compare (pure TS
 src/sim/               personas, rounds, rehearsal state machine, validation, summary (pure TS, browser-safe)
 src/report/            renderReport(): HTML string (pure TS, browser-safe) + client behaviour for sliders
 src/state.ts           ShareState codec (fflate, browser-safe)
-src/mcp/tools.ts       tool definitions + handlers (transport-agnostic), server instructions
+src/mcp/tools.ts       tool definitions + handlers (transport-agnostic)
+src/mcp/instructions.ts server instructions and the what-if prompt (all model-facing guidance)
+src/mcp/messages.ts    the server's own sentences in de/en/es/pl
 src/mcp/http.ts        Vercel Node handler: stateless Streamable HTTP at /api/mcp (+ CORS, GET info)
 src/mcp/stdio.ts       same tools over stdio for local use
 site/                  static pages (index.html, connect.html, r.html …) + site/src/*.ts client entries
@@ -82,6 +84,9 @@ export interface ShareState { v: 1; template: TemplateId; inputs: RawInputs; bus
 export function encodeState(s: ShareState): string;   // deflate-raw + base64url
 export function decodeState(token: string): ShareState; // throws a plain error on a bad token
 export function reportUrl(siteUrl: string, s: ShareState): string; // `${siteUrl}/r#${encodeState(s)}`
+// v0.2 adds: lang?, madeBy? ("coach" | "try" | "demo"), rehearsal.customerMix?, reactions[].heardFrom?.
+// decodeState treats tokens as untrusted: STATE_LIMITS caps the token (60,000 chars), the unpacked JSON
+// (200 KB) and every field (inputs, business 200, question 500, reactions, events, interviews).
 ```
 
 A rehearsal is rebuilt from a `ShareState` by `startRehearsal(analysis, { seed, personas, rounds })`, then replaying `events` and `reactions` in order (`src/sim/index.ts` exports `rebuildRehearsal(a: Analysis, s: NonNullable<ShareState["rehearsal"]>): Rehearsal` for this).
@@ -98,19 +103,21 @@ export function mountReport(root: HTMLElement, input: Parameters<typeof renderRe
 
 All tools are stateless. Every result has a short plain-language text block first (for the model to relay), then JSON in `structuredContent`, and a `report_url` the coach should share.
 
+Every tool takes an optional `lang` (`de` default; "German", "Deutsch", "pl-PL" … are understood). Tools after the first accept **either** `template` + `inputs` **or** the `state` token a previous result returned. Unknown input keys come back in `ignored_inputs` with a "did you mean". `report_url` never contains the invite code.
+
 | Tool | Input | Returns |
 |---|---|---|
-| `whatif_start` | `question` (the user's "what if…" sentence) | which template fits, the fields to ask for (with `ask` and `why`), the demo values, a demo `report_url`, and coaching instructions. **Its description tells the model to call it whenever the user writes "what if…" about a business decision.** |
-| `whatif_check_inputs` | `template`, `inputs`, `demo?` | `InputCheck` + `next_question` (the single most important missing item) |
-| `whatif_run_scenarios` | `template`, `inputs`, `business?`, `question?`, `demo?`, `currency?` | scenarios, break-even, worst case, biggest uncertainty, lessons, `report_url` |
-| `whatif_what_changed` | `template`, `before` (inputs), `after` (inputs) | `ChangeExplanation` + new `report_url` |
-| `whatif_rehearsal_start` | `template`, `inputs`, `personas?`, `rounds?`, `seed?`, `event?`, `business?`, `question?` | personas, round-1 briefs (one ready prompt per imagined customer), `state`, `report_url`, how to run them (parallel subagents if available) |
-| `whatif_rehearsal_submit` | `state`, `reactions[]`, `method?` | accepted, errors (retry those personas), next briefs or done, new `state`, `report_url` |
-| `whatif_rehearsal_event` | `state`, `event` | new `state`; the event applies before the next round |
-| `whatif_rehearsal_autoplay` | `state` | plays remaining rounds with the rule-based stand-in (no model), summary, `state`, `report_url` |
-| `whatif_rehearsal_interview` | `state`, `question`, `persona_ids?`, `answers?` | without answers: briefs; with answers: recorded interview, new `state` |
-| `whatif_plan_test` | `template`, `inputs` | `TestPlan` + `report_url` |
-| `whatif_log_result` | `template`, `inputs`, `observed` | `TestResult` + `report_url` |
+| `whatif_start` | `question`, `business?`, `template?`, `lang?` | `kind`: `decision` (template, fields with `ask`/`why`, demo values, demo `report_url`, Kieze, Berlin events), `unsupported` (hiring, opening hours … → honest "not yet"), `not_a_decision` (weather, a competitor alone, rent …), `results` (back with test results → `whatif_log_result`) or `unclear`; `template: null` for every non-decision. **Its description tells the model to call it first whenever the user writes "what if…" about a business decision.** |
+| `whatif_check_inputs` | `template`, `inputs`, `demo?`, `lang?` | `InputCheck` + `next_question` (the single most important missing item); `state` once ready |
+| `whatif_run_scenarios` | `template`, `inputs` (or `demo: true`), `business?`, `question?`, `currency?`, `lang?` | scenarios, both break-evens, worst case, biggest uncertainty, lessons, `state`, `report_url` |
+| `whatif_what_changed` | `state` or `template` + `before`, and `after` (only the changed fields are enough) | `ChangeExplanation` + new `state` and `report_url` |
+| `whatif_rehearsal_start` | `state` or `template` + `inputs`, `personas?`, `rounds?`, `seed?`, `event?` (text or a Berlin event id), `customer_mix?`, `business?`, `question?`, `demo?`, `currency?` | personas, round-1 briefs (one ready prompt per imagined customer), `state`, `report_url`, host run instructions (parallel subagents where available) |
+| `whatif_rehearsal_submit` | `state`, `reactions[]`, `method?` | accepted, errors and `retry_briefs` (only the failed personas), next briefs or done with the summary, new `state`, `report_url` |
+| `whatif_rehearsal_event` | `state`, `event` (text or id) | new `state` and refreshed briefs that include the event |
+| `whatif_rehearsal_autoplay` | `state` | plays the remaining rounds with the rule-based stand-in (no model), summary, `state`, `report_url` |
+| `whatif_rehearsal_interview` | `state`, `question`, `persona_ids?`, `answers?` | without answers: briefs; with `{personaId, answer}` answers: the recorded interview, new `state` |
+| `whatif_plan_test` | `state` or `template` + `inputs` | `TestPlan` (one keep / tweak / stop rule shared with the verdict) + `report_url` |
+| `whatif_log_result` | `state` or `template` + `inputs`, `observed` | `TestResult` + `report_url` |
 
 The server also exposes MCP `instructions` (how to coach, the "what if" trigger, share the report link at every step) and a prompt `what-if` for clients that list prompts.
 
@@ -138,7 +145,7 @@ What-IF now targets **independent cafés in Berlin**, as a **closed beta with in
 
 ### Berlin specifics (engine + sim)
 
-- **VAT (Mehrwertsteuer)**: prices the owner enters are what customers pay (gross). Since **1 Jan 2026** food in restaurants and cafés is taxed at **7%** (eat-in and take-away); **drinks stay at 19%** (milk drinks with ≥ 75% milk: 7%). Source: Steueränderungsgesetz 2025 / §12 (2) Nr. 15 UStG; BMF letter of 22 Dec 2025 accepts a flat 30% drinks share for combined offers like buffets. The engine works on net prices: `net = gross / (1 + vat)`.
+- **VAT (Mehrwertsteuer)**: prices the owner enters are what customers pay (gross). Since **1 Jan 2026** food in restaurants and cafés is taxed at **7%** (eat-in and take-away); **drinks stay at 19%**, every drink served in the café included (only take-away milk drinks with ≥ 75% milk are 7%, an older rule in Anlage 2 UStG, unchanged in 2026). Source: Steueränderungsgesetz 2025 / §12 (2) Nr. 15 UStG; BMF letter of 22 Dec 2025 accepts a flat 30% drinks share for combined offers like buffets. The engine works on net prices: `net = gross / (1 + vat)`.
   - Lunch offer: new optional field `vat_rate` ("VAT in your lunch prices, blended"), fallback **10.6%** (70% food at 7% + 30% drinks at 19%), tagged as a guess with that explanation and "ask your Steuerberater for your real split". Used for both the deal and today's lunch spend. `variable_cost_share` stays a share of the price customers pay.
   - Price change: new optional field `vat_rate`, fallback **19%** (coffee drinks), with the 7% food / milk-drink note.
 - **Staff cost**: `extra_staff_cost_per_day` is replaced by `extra_staff_hours_per_day` (choice, default 0) × `staff_hourly_cost` (fact, fallback **€13.90** = statutory minimum wage since 1 Jan 2026, €14.60 from 1 Jan 2027, tagged as a guess with the note "your real cost per hour is higher once employer contributions are added; check your payroll"). Demo: 1 hour at €18.00.
