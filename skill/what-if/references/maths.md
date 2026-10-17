@@ -266,11 +266,12 @@ How customers react: from −€36.95 to €155.00 a week between the cautious a
 If the owner names `minimum_wage_hours_per_week`, the tool puts the wage step next to the price change:
 
 ```
-wage_step_week = minimum_wage_hours_per_week × (€14.60 − €13.90)            = hours × €0.70 more a week from 1 Jan 2027
-compare        weekly_delta(volume_likely) with wage_step_week                does the new price cover the step, on this guess?
+wage_step_week = minimum_wage_hours_per_week × (€14.60 − €13.90)            = hours × €0.70 more in wages a week from 1 Jan 2027
+step_with_contributions = wage_step_week × (1 + 0.21)                       employer contributions: about 21%, a guess (Minijobs cost more)
+compare        weekly_delta(volume_likely) with step_with_contributions       does the new price cover the step, on this guess?
 ```
 
-Illustration, by hand (not part of the demo café): if 60 hours a week are paid at the minimum wage (the owner's number), 60 × €0.70 = €42.00 more a week from 1 Jan 2027, against the expected €91.02 a week from the flat white. These are gross wages; employer contributions come on top, so say "check your payroll". Quote the tool's figure when it has one. It is a comparison, never a recommendation to raise prices.
+Illustration, by hand (not part of the demo café): if 60 hours a week are paid at the minimum wage (the owner's number), 60 × €0.70 = €42.00 more in wages a week from 1 Jan 2027, about €50.82 with roughly 21% employer contributions (a guess; check your payroll), against the expected €91.02 a week from the flat white at +30 cents. At +20 cents (€43.40 a week) the price would cover the wages but not the contributions: about €7.42 a week short. Quote the tool's figure when it has one. It is a comparison, never a recommendation to raise prices.
 
 **What it teaches**
 - The one number to remember: you could sell up to 9.7% fewer flat whites (up to 60 a week) and still earn the same.

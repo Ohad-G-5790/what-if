@@ -42,7 +42,7 @@ The demo reports and every report link (`/r#…`) need no code: open the site an
 
 What-IF is a closed beta for independent cafés in Berlin. Each café gets a personal invite code.
 
-- Ask the person who told you about What-IF, or use **Ask for an invite** on the site's Connect page (it shows the beta contact when one is set).
+- Ask the person who told you about What-IF, or use **Request an invite** (German: **Einladung anfragen**) on the site's Connect page (it shows the beta contact when one is set).
 - Your code goes into your AI app's connector address as `?code=YOUR-CODE`, and into `/try`. The site remembers it in your browser only.
 - Report links (`/r#…`) need no code. They carry their own numbers, so you can share them, for example with your Steuerberater.
 
@@ -54,7 +54,7 @@ Your personal MCP address (a remote MCP server over Streamable HTTP):
 https://<site>/api/mcp?code=YOUR-CODE
 ```
 
-The site's **Connect** page (`/connect`) builds it from your code, with copy buttons. Opening it in a browser shows a JSON info page: `"valid": true` means the code works. Without a valid code, the server answers HTTP 401 with a message that What-IF is a closed beta for Berlin cafés and how to ask for a code. If your app asks you to sign in or says unauthorised, the link is missing your invite code: use `https://<site>/api/mcp?code=YOUR-CODE`.
+The site's **Connect** page (`/connect`) builds it from your code, with copy buttons. Opening it in a browser shows a JSON info page: `"valid": true` means the code works. Without a valid code the server still connects and lists its tools, but every tool call answers with a tool error that says, in German and English, that What-IF is a closed beta for Berlin cafés and how to ask for a code; the sign-in paths answer 404 and nothing answers 401, so AI apps don't start a sign-in. If your app asks you to sign in or says unauthorised, the link is missing your invite code: use `https://<site>/api/mcp?code=YOUR-CODE`.
 
 | App | How |
 |---|---|
@@ -68,7 +68,7 @@ The site's **Connect** page (`/connect`) builds it from your code, with copy but
 **The skill** adds the full coaching workflow where skills exist. Download `what-if-skill.zip` from the site, then:
 
 - Claude.ai / Desktop / Cowork: Settings → Capabilities → Skills → **Upload skill** (don't unzip it).
-- Claude Code: unzip it into `~/.claude/skills/` so you get `~/.claude/skills/what-if/SKILL.md`. On Windows: `Expand-Archive what-if-skill.zip -DestinationPath "$HOME\.claude\skills"`.
+- Claude Code: unzip it into `~/.claude/skills/` so you get `~/.claude/skills/what-if/SKILL.md`. On Windows: `Expand-Archive what-if-skill.zip -DestinationPath "$HOME\.claude\skills" -Force`.
 
 **No skills in your app** (ChatGPT, Cursor, VS Code…)? Paste the starter prompt from the Connect page, in German, English, Spanish or Polish, or pick the server's `what-if` prompt if your app lists MCP prompts. **No AI app at all?** Use `/try`.
 
@@ -201,7 +201,7 @@ npm run qa                        # a counted loop: scores every part 1–10; pa
    | Variable | What it does | Example |
    |---|---|---|
    | `WHATIF_BETA_CODES` | the invite codes, comma-separated, each at least 6 characters (case does not matter). **Unset = open**, for local dev and tests. | `BERLIN-CAFE-01,LINDEN-2026` |
-   | `WHATIF_BETA_CONTACT` | where owners ask for a code: an email or a URL. Shown in the 401 message, on the site and in the skill; empty hides the "ask for an invite" button. | `beta@example.com` |
+   | `WHATIF_BETA_CONTACT` | where owners ask for a code: an email or a URL. Shown in the closed-beta tool error, on the site and in the skill; empty hides the "ask for an invite" button. | `beta@example.com` |
    | `WHATIF_SITE_URL` | the public address used in report links, the skill zip and the Connect page. Unset: a Vercel build uses `https://$VERCEL_PROJECT_PRODUCTION_URL`, the MCP function uses each request's host, local builds use `http://localhost:3000`. | `https://whatif.example.com` |
 
 3. Check it: open `https://<site>/api/mcp?code=<one of your codes>` in a browser. The JSON info page should say `"valid": true`.

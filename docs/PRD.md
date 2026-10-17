@@ -128,7 +128,7 @@ Loop 1 found the decision lesson strong but unproven: no real café had used Wha
 |---|---|
 | **Who** | Independent cafés in Berlin (owner-run, one site). First wave: **10 invited cafés**. |
 | **Languages** | **German (default), English, Spanish, Polish**: the report, the site, `/try`, tool texts, the skill's replies and the starter prompts. German uses "Sie", short sentences and no unexplained finance terms. The AI replies in the language the owner writes in and passes `lang` to every tool. |
-| **Access** | **Invite codes** (`WHATIF_BETA_CODES`; unset = open, for local dev and tests). Owners paste a personal connector address `https://<site>/api/mcp?code=XXXX`. A wrong or missing code gets HTTP 401 in German and English with how to ask for one (`WHATIF_BETA_CONTACT`). Report links `/r#…` stay open. |
+| **Access** | **Invite codes** (`WHATIF_BETA_CODES`; unset = open, for local dev and tests). Owners paste a personal connector address `https://<site>/api/mcp?code=XXXX`. A wrong or missing code gets a tool error in German and English with how to ask for one (`WHATIF_BETA_CONTACT`); never a 401, which AI apps would treat as a sign-in. Report links `/r#…` stay open. |
 | **No AI app** | **`/try`** ("Try with your numbers"): one question per screen (Kiez, the 6 required facts, the plan, the likely guess), "why it matters" on each, demo values as placeholders; it ends in the owner's own report. Needs the invite code. Nothing stored. |
 | **Berlin maths** | Prices are what customers pay **including VAT**; the engine works on net prices. Staff cost = **extra hours a day × cost per hour**. The report shows a **"Berlin facts used"** card with the source and date of each public fact. |
 | **Kiez** | Optional `kiez` (18 Kieze plus "other"). Used only by the rehearsal (persona mix, names, alternatives, channels, scene), as a labelled rough guess, never as statistics. |
@@ -189,7 +189,7 @@ Loop 2 judge scores (`qa/judge/*.json`, 17 Oct 2026): engine 5 (capped by a wron
 | A judge has no code; the README's info-page wording was off (docs-devex) | README "For judges": four demos without a code, the judges' code with the submission; "a JSON info page" | README |
 | The AI's part is invisible in the shipped demos (hackathon) | `/r#demo-ai`: a rehearsal played by Claude subagents, saved and labelled | report, site |
 
-Still open from loop 2 and tracked in the judge files: identical interview answers in the demo, the `/try` report's rehearsal dead end, phone layout, ARCHITECTURE drift, CI, the `--skip` loophole and MCP input caps.
+Fixed in loop 3 (commit 0c9f3d9): unique interview answers per imagined customer, a rule-based rehearsal button on `/try` reports, phone step 5, ARCHITECTURE refreshed, CI on Ubuntu and Windows, `--skip` runs never counted, MCP input caps. Loop 3 judges then score the result.
 
 ### 12.5 What the beta must prove (success measures)
 

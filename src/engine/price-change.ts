@@ -17,7 +17,7 @@
  *
  * Every building block is rounded to the cent before it is used again, so each maths line checks out by hand.
  */
-import { MIN_WAGE_2026, MIN_WAGE_2027, MIN_WAGE_RISE_2027, VAT_DRINKS } from "./berlin.ts";
+import { EMPLOYER_SHARE_GUESS, MIN_WAGE_2026, MIN_WAGE_2027, MIN_WAGE_RISE_2027, VAT_DRINKS } from "./berlin.ts";
 import { EPS, eur, has, n, num, pc, price, r1, r2, round, seur, signedPct, signedPrice } from "./format.ts";
 import type { Values } from "./format.ts";
 import { continueSentence, fig, filledIn, fromSources, sourcesOf, valuesOf } from "./figures.ts";
@@ -119,7 +119,8 @@ function vsOld(m: PriceModel): string {
 
 /** "€14.60 − €13.90 = €0.70 more an hour. 60 staff hours a week × €0.70 = €42.00 a week …" */
 function wageCostMaths(hours: number, costWeek: number): string {
-  return t("price.fig.wage.maths", { new: price(MIN_WAGE_2027), old: price(MIN_WAGE_2026), rise: price(MIN_WAGE_RISE_2027), hours: t("n.wageHours", { n: hours }), cost: price(costWeek) });
+  const wage = r2(hours * MIN_WAGE_RISE_2027);
+  return t("price.fig.wage.maths", { new: price(MIN_WAGE_2027), old: price(MIN_WAGE_2026), rise: price(MIN_WAGE_RISE_2027), hours: t("n.wageHours", { n: hours }), wage: price(wage), share: pc(EMPLOYER_SHARE_GUESS), cost: price(costWeek) });
 }
 
 /** "+€43.40 a week from the new price − €42.00 for the wage rise = +€1.40 a week …" */
@@ -136,7 +137,9 @@ export function priceWageRise(v: Values): WageRiseCheck | undefined {
   if (!(hours > EPS)) return undefined;
   const m = priceModel(v);
   const likely = n(v, "volume_likely");
-  const costWeek = r2(hours * MIN_WAGE_RISE_2027);
+  // The wage rise plus employer contributions on it (a guess): what the owner actually pays.
+  const wageWeek = r2(hours * MIN_WAGE_RISE_2027);
+  const costWeek = r2(wageWeek * (1 + EMPLOYER_SHARE_GUESS));
   const gainWeek = m.deltaWeek(likely);
   const leftWeek = r2(gainWeek - costWeek);
   const covers = gainWeek > EPS && leftWeek >= -EPS;
@@ -149,10 +152,12 @@ export function priceWageRise(v: Values): WageRiseCheck | undefined {
     rise: price(MIN_WAGE_RISE_2027),
     hours: t("n.wageHoursFor", { n: hours }),
     left: eur(Math.abs(leftWeek)),
+    wage: eur(wageWeek),
+    share: pc(EMPLOYER_SHARE_GUESS),
   };
   const plain = gainWeek <= EPS ? t("price.wage.plain.none", p) : covers ? t("price.wage.plain.covers", p) : t("price.wage.plain.short", p);
   const w = { gainWeek, costWeek, leftWeek };
-  return { hoursPerWeek: hours, risePerHour: MIN_WAGE_RISE_2027, costWeek, gainWeek, leftWeek, covers, maths: `${wageCostMaths(hours, costWeek)} ${wageLeftMaths(w, likely)}`, plain };
+  return { hoursPerWeek: hours, risePerHour: MIN_WAGE_RISE_2027, wageWeek, employerShare: EMPLOYER_SHARE_GUESS, costWeek, gainWeek, leftWeek, covers, maths: `${wageCostMaths(hours, costWeek)} ${wageLeftMaths(w, likely)}`, plain };
 }
 
 /** "you can sell up to 60 fewer a week (9.7% of 620) …" / "you need 64 more sales a week …". */

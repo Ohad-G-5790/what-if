@@ -27,7 +27,8 @@ No plugin packaging for now (no time to publish one). The skill folder is plugin
 src/engine/            templates, inputs, analysis, experiment, compare (pure TS, browser-safe)
 src/sim/               personas, rounds, rehearsal state machine, validation, summary (pure TS, browser-safe)
 src/report/            renderReport(): HTML string (pure TS, browser-safe) + client behaviour for sliders
-src/state.ts           ShareState codec (fflate, browser-safe)
+src/state.ts           ShareState codec (fflate, browser-safe); treats tokens as untrusted (STATE_LIMITS)
+src/i18n/              languages (index.ts: Lang, makeT, plural) and terms.ts: one word per idea per language, used by every surface
 src/mcp/tools.ts       tool definitions + handlers (transport-agnostic)
 src/mcp/instructions.ts server instructions and the what-if prompt (all model-facing guidance)
 src/mcp/messages.ts    the server's own sentences in de/en/es/pl
@@ -108,8 +109,8 @@ Every tool takes an optional `lang` (`de` default; "German", "Deutsch", "pl-PL" 
 | Tool | Input | Returns |
 |---|---|---|
 | `whatif_start` | `question`, `business?`, `template?`, `lang?` | `kind`: `decision` (template, fields with `ask`/`why`, demo values, demo `report_url`, Kieze, Berlin events), `unsupported` (hiring, opening hours … → honest "not yet"), `not_a_decision` (weather, a competitor alone, rent …), `results` (back with test results → `whatif_log_result`) or `unclear`; `template: null` for every non-decision. **Its description tells the model to call it first whenever the user writes "what if…" about a business decision.** |
-| `whatif_check_inputs` | `template`, `inputs`, `demo?`, `lang?` | `InputCheck` + `next_question` (the single most important missing item); `state` once ready |
-| `whatif_run_scenarios` | `template`, `inputs` (or `demo: true`), `business?`, `question?`, `currency?`, `lang?` | scenarios, both break-evens, worst case, biggest uncertainty, lessons, `state`, `report_url` |
+| `whatif_check_inputs` | `state` or `template` + `inputs`, `demo?`, `business?`, `question?`, `currency?`, `lang?` | `InputCheck` + `next_question` (the single most important missing item); `state` once ready |
+| `whatif_run_scenarios` | `state` or `template` + `inputs` (or `demo: true`), `business?`, `question?`, `currency?`, `lang?` | scenarios, both break-evens, worst case, biggest uncertainty, lessons, `state`, `report_url` |
 | `whatif_what_changed` | `state` or `template` + `before`, and `after` (only the changed fields are enough) | `ChangeExplanation` + new `state` and `report_url` |
 | `whatif_rehearsal_start` | `state` or `template` + `inputs`, `personas?`, `rounds?`, `seed?`, `event?` (text or a Berlin event id), `customer_mix?`, `business?`, `question?`, `demo?`, `currency?` | personas, round-1 briefs (one ready prompt per imagined customer), `state`, `report_url`, host run instructions (parallel subagents where available) |
 | `whatif_rehearsal_submit` | `state`, `reactions[]`, `method?` | accepted, errors and `retry_briefs` (only the failed personas), next briefs or done with the summary, new `state`, `report_url` |
@@ -156,11 +157,16 @@ What-IF now targets **independent cafés in Berlin**, as a **closed beta with in
 ### Closed beta: invite codes
 
 - `WHATIF_BETA_CODES` (Vercel env, comma-separated, each ≥ 6 chars). **Unset = open** (local dev, tests).
-- MCP: when set, every POST to `/api/mcp` needs a valid code via `?code=XXXX` in the URL (what owners paste into their AI app), or header `x-whatif-code`, or `Authorization: Bearer XXXX`. Otherwise HTTP 401 with a JSON-RPC error whose message, in German and English, says What-IF is a closed beta for Berlin cafés and how to ask for a code (`WHATIF_BETA_CONTACT`, an email or URL; omitted if unset). Constant-time comparison; codes never logged or echoed.
+- MCP: when set, every POST to `/api/mcp` needs a valid code via `?code=XXXX` in the URL (what owners paste into their AI app), or header `x-whatif-code`, or `Authorization: Bearer XXXX`. Without a valid code, `initialize`, `tools/list` and `prompts/list` still answer (the instructions end with a CLOSED BETA note), and every `tools/call` answers HTTP 200 with `isError: true` and the message, German first then English: What-IF is a closed beta for Berlin cafés, the connector link must end in `?code=…`, and how to ask for a code (`WHATIF_BETA_CONTACT`; "ask the person who invited you" if unset); `structuredContent.beta` = `{ required, valid: false, reason, connector_url, how_to_connect, contact? }`. OAuth discovery paths (`/.well-known/oauth-*`, `/register`, `/authorize`, `/token`) answer 404 JSON with the same message. **Never 401 and never `WWW-Authenticate`**: real MCP clients treat a 401 as a sign-in prompt and the owner would never see the message. Constant-time comparison; codes never logged or echoed.
 - `GET /api/mcp?code=XXXX` (browser / site) returns the info JSON plus `beta: { required, valid }`, so the site can check a code without storing anything.
 - Site: a "Closed beta · Berlin" badge; the connect page and the new **"Try with your numbers"** page (`/try`) ask for the invite code (remembered in localStorage), check it via the GET above, and build the personal connector URL `https://<site>/api/mcp?code=XXXX`. The report viewer `/r#…` stays open (links are shared and carry their own data).
 - `WHATIF_BETA_CONTACT` is templated into the site and skill like `{{SITE_URL}}` (as `{{BETA_CONTACT}}`; hide the request button when empty).
 
 ### "Try with your numbers" (`/try`, site)
 
-Selin (persona judge) could not use her own numbers without an AI app. `/try` is a one-question-per-screen wizard in the four languages: Kiez → the 6 required facts → the plan → the likely guess (with "why it matters" on every screen, demo values as placeholders, rough numbers welcome) → builds a `ShareState` (lang, inputs, demo:false) → `/r#token`. It needs a valid invite code when the beta is on. No server storage.
+Selin (persona judge) could not use her own numbers without an AI app. `/try` is a one-question-per-screen wizard in the four languages: invite code (when the beta is on) → what to try (weekday lunch deal, price change, or "I already ran my test" to log a result) → Kiez → the required facts (including what a lunch guest spends today) → "What does the test cost you?" (setup, staff hours at an hourly cost defaulting to the dated minimum wage, promotion, spare cash) → the likely guess → a review screen listing every number asked and every value What-IF assumed, each editable → builds a `ShareState` (lang, inputs, demo:false, madeBy "try") → `/r#token`. The report offers a rule-based rehearsal (no AI) and a "log your result" step that writes `observed` into the same link. No server storage.
+
+### Demos and saved casts (v0.3)
+
+- Four demo links need no code: `/r#demo` (lunch deal, rule-based rehearsal), `/r#demo-price` (flat white +20 cents against the 2027 minimum wage, via the optional price-change input `minimum_wage_hours_per_week`), `/r#demo-result` (after the test, with made-up counts) and `/r#demo-ai` (a rehearsal played by Claude subagents, saved in `src/report/demo-ai.json`).
+- `ShareState.rehearsal.cast` and `.active` hold the exact imagined customers whenever an AI played them (method `subagent` or `in-context`); `rebuildRehearsal` uses them verbatim, so saved AI links survive changes to persona generation.

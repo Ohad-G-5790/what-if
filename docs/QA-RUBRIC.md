@@ -127,7 +127,7 @@ What the bot needs:
 
 Outputs:
 
-- `qa/reports/latest.md` (or `dry-run.md`): the table, warnings, failing checks with their commands, the biggest gains, the judges' notes, improvements and loop-1 follow-up, the refinements and the loop history.
+- `qa/reports/latest.md` (or `dry-run.md`): the table, warnings, failing checks with their commands, the biggest gains, the judges' notes, improvements and the follow-up of the previous loop's improvements (`loop<N-1>`), the refinements and the loop history.
 - `qa/reports/loop-N.json` (or `dry-run.json`): the same data as JSON.
 - `qa/reports/ui/` (ignored by git), all from the shipped demo (`src/report/demo.ts`), German first: screenshots of landing, connect, try and report at desktop, phone and dark; `report-en|es|pl-phone.png` and `.txt`; `report-slider-moved.png`, `report-phone-collapsed.png`, `report-switched-en.txt`; `try-walkthrough.txt` and `try-done-report.png` (the keyboard run); **loop 3:** `try-phone-01.png` … with `try-phone.txt` (every `/try` screen at 390 px), `try-report-phone.png` / `try-report.txt` and `try-rehearsal-phone.png` / `try-rehearsal.txt` (the `/try` report and its rehearsal), `report-result-phone.png`, `report-price-phone.png` (and `report-ai-phone.png`) with their texts in each language (`report-result-en.txt`, …), `landing-|connect-|try-<lang>.txt`; `try-beta-code.png`, `try-beta-wrong-code.png`, `try-beta-first-question.png`, `connect-beta.txt` and `connect-beta-phone.png` (the closed beta); the visible text of each page; and `report-static.html` (en) and `report-static.de|es|pl.html`, all for the judges.
 

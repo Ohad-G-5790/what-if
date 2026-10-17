@@ -148,7 +148,11 @@ export interface WageRiseCheck {
   hoursPerWeek: number;
   /** €14.60 − €13.90 = €0.70 more per hour from 1 Jan 2027. */
   risePerHour: number;
-  /** hours × €0.70. */
+  /** hours × €0.70 (the wage alone). */
+  wageWeek?: number;
+  /** Employer contributions on top, as a share of the wage: a labelled guess (about 21%). */
+  employerShare?: number;
+  /** What the rise costs the owner a week: wage × (1 + employerShare). */
   costWeek: number;
   /** What the new price brings a week at the owner's likely guess (delta_week at volume_likely). */
   gainWeek: number;

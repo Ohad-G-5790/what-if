@@ -88,7 +88,7 @@ export const STATE_LIMITS = {
   events: 5,
   eventChars: 300,
   reactionChars: 800,
-  interviews: 5,
+  interviews: 10,
   answers: 12,
 } as const;
 

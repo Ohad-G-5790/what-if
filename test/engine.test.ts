@@ -1141,41 +1141,42 @@ describe("price change and the 2027 minimum wage", () => {
   const withHours = (patch: RawInputs = {}, lang?: Lang) =>
     analyze("price_change", { ...demoInputs("price_change", "en"), ...patch }, { demo: true, createdAt: T, ...(lang ? { lang } : {}) });
 
-  test("demo: 60 h a week at the minimum wage; the rise costs 60 × €0.70 = €42 a week, the 30 cents bring €91.02", () => {
+  test("demo: 60 h a week at the minimum wage; the rise costs 60 × €0.70 = €42 in wages, €50.82 with ~21% employer contributions; the 30 cents bring €91.02", () => {
     assert.equal(demoInputs("price_change").minimum_wage_hours_per_week, 60);
     const a = priceDemo();
     const w = a.wageRise!;
-    assert.deepEqual([w.hoursPerWeek, w.risePerHour, w.costWeek, w.gainWeek, w.leftWeek, w.covers], [60, 0.7, 42, 91.02, 49.02, true]);
+    assert.deepEqual([w.hoursPerWeek, w.risePerHour, w.wageWeek, w.employerShare, w.costWeek, w.gainWeek, w.leftWeek, w.covers], [60, 0.7, 42, 0.21, 50.82, 91.02, 40.2, true]);
     assert.equal(w.gainWeek, scen(a, "expected").figures.find((f) => f.id === "delta_week")!.value, "the gain is the expected scenario's weekly difference");
-    assert.equal(fig(a, "min_wage_rise_week").value, 42);
+    assert.equal(fig(a, "min_wage_rise_week").value, 50.82);
     assert.equal(
       fig(a, "min_wage_rise_week").maths,
-      "From 1 January 2027 the minimum wage rises from €13.90 to €14.60 an hour: €14.60 − €13.90 = €0.70 more an hour. 60 staff hours a week × €0.70 = €42.00 a week, before employer contributions.",
+      "From 1 January 2027 the minimum wage rises from €13.90 to €14.60 an hour: €14.60 − €13.90 = €0.70 more an hour. 60 staff hours a week × €0.70 = €42.00 a week in wages; with about 21% employer contributions on top (a guess; Minijobs cost more) = €50.82 a week.",
     );
-    assert.equal(fig(a, "left_after_wage_rise_week").maths, "+€91.02 a week from the new price − €42.00 for the wage rise = +€49.02 a week. Both at your likely guess (−4% sales).");
+    assert.equal(fig(a, "left_after_wage_rise_week").maths, "+€91.02 a week from the new price − €50.82 for the wage rise = +€40.20 a week. Both at your likely guess (−4% sales).");
     assert.match(w.plain, /the rise of 30 cents brings about €91 a week/);
-    assert.match(w.plain, /costs you about €42 a week for 60 staff hours/);
-    assert.match(w.plain, /covers the wage rise, with about €49 a week to spare/);
+    assert.match(w.plain, /€42 a week in wages for 60 staff hours, about €51 with employer contributions \(a guess: about 21%\)/);
+    assert.match(w.plain, /covers the wage rise, with about €40 a week to spare/);
+    assert.match(w.plain, /The rise comes either way; the decision is only about the price\./);
     assert.ok(a.lessons[0]!.startsWith(w.plain), "the wage answer is the first lesson");
     assert.deepEqual(a.facts.map((f) => f.id), ["vat_drinks_19", "vat_milk_takeaway_7", "vat_food_7", "min_wage_2026", "min_wage_2027"]);
     assert.equal(wageRiseCheck(a), w);
   });
 
-  test("the shipped report demo (+20 cents): €43.40 a week against €42.00, so the rise is just covered", () => {
+  test("the shipped report demo (+20 cents): €43.40 a week against €50.82 with contributions, so the price covers only part of the rise", () => {
     const a = withHours({ new_price: 4.1 });
-    assert.deepEqual([a.wageRise!.gainWeek, a.wageRise!.costWeek, a.wageRise!.leftWeek, a.wageRise!.covers], [43.4, 42, 1.4, true]);
+    assert.deepEqual([a.wageRise!.gainWeek, a.wageRise!.wageWeek, a.wageRise!.costWeek, a.wageRise!.leftWeek, a.wageRise!.covers], [43.4, 42, 50.82, -7.42, false]);
     assert.match(a.wageRise!.plain, /the rise of 20 cents brings about €43 a week/);
-    assert.match(a.wageRise!.plain, /with about €1\.40 a week to spare/);
+    assert.match(a.wageRise!.plain, /covers only part of the wage rise: about €7\.42 a week is still missing/);
     const de = withHours({ new_price: 4.1 }, "de");
     assert.match(de.wageRise!.plain, /bringt die Erhöhung um 20 Cent etwa 43\s€ pro Woche/);
-    assert.match(de.wageRise!.maths, /60 Personalstunden pro Woche × 0,70\s€ = 42,00\s€ pro Woche/);
-    assert.match(de.wageRise!.maths, /\+43,40\s€ pro Woche durch den neuen Preis − 42,00\s€ für die Lohnerhöhung = \+1,40\s€ pro Woche/);
+    assert.match(de.wageRise!.maths, /60 Personalstunden pro Woche × 0,70\s€ = 42,00\s€ Lohn pro Woche; mit etwa 21\s%\s?Arbeitgeberanteil/);
+    assert.match(de.wageRise!.maths, /\+43,40\s€ pro Woche durch den neuen Preis − 50,82\s€ für die Lohnerhöhung = −7,42\s€ pro Woche/);
   });
 
   test("short and none: more hours than the price covers, and a price that brings nothing", () => {
     const short = withHours({ minimum_wage_hours_per_week: 200 }).wageRise!;
-    assert.deepEqual([short.costWeek, short.leftWeek, short.covers], [140, -48.98, false]);
-    assert.match(short.plain, /covers only part of the wage rise: about €49 a week is still missing/);
+    assert.deepEqual([short.wageWeek, short.costWeek, short.leftWeek, short.covers], [140, 169.4, -78.38, false]);
+    assert.match(short.plain, /covers only part of the wage rise: about €78 a week is still missing/);
     const none = withHours({ new_price: 3.6, volume_low: -0.02, volume_likely: 0, volume_high: 0.02 }).wageRise!;
     assert.ok(none.gainWeek < 0 && !none.covers);
     assert.match(none.plain, /brings no extra money \(−€\d+ a week\), so it does nothing towards the minimum-wage rise/);

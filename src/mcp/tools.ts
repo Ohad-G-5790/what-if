@@ -712,7 +712,7 @@ const HYPOTHETICAL = words([
   "what if", "what about", "should i", "should we", "is it worth", "can i expect", "could i expect",
   "was wäre", "was ist wenn", "was ist, wenn", "was passiert, wenn", "was passiert wenn", "lohnt es sich", "lohnt sich", "sollte ich", "sollten wir", "kann ich erwarten",
   "y si", "qué pasa si", "qué pasaría si", "me conviene", "debería", "puedo esperar",
-  "co jeśli", "co jesli", "co gdyby", "czy warto", "czy powinienem", "czy powinnam", "czy opłaca się",
+  "co jeśli", "co jesli", "co gdyby", "a gdyby", "czy warto", "czy powinienem", "czy powinnam", "czy opłaca się",
 ]);
 /** A count from the café: "47 Gäste", "47 lunch guests a day", "15 am Tag", "620 a week". */
 const COUNTED =

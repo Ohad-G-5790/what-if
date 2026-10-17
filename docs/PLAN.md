@@ -75,7 +75,7 @@ Planned on 17 Oct 2026 after QA loop 1, and built by seven parallel agents again
 | Rehearsal | Kiez-based persona mix, `BERLIN_EVENTS`, briefs that ask for answers in the analysis language, a caveat that follows the method | a rule-based run completes in each language; no "played by an AI" when no AI played |
 | Report | "Berlin facts used" card, language switcher, "who did what" line | the same link renders in DE · EN · ES · PL with the numbers recomputed |
 | Site | beta badge, invite-code check, `/try` wizard, starter prompts on the Connect page | an owner reaches her own report from her phone without an AI app |
-| MCP + build | invite codes (`?code=`, header, Bearer; 401 in DE/EN), `lang` on every tool, `template: null` for near misses, `{{BETA_CONTACT}}` templating, `.env.example` | a wrong code gets 401; `GET /api/mcp?code=` reports `valid`; the skill zip points at an https site |
+| MCP + build | invite codes (`?code=`, header, Bearer; v0.3: a tool error in DE/EN, never 401), `lang` on every tool, `template: null` for near misses, `{{BETA_CONTACT}}` templating, `.env.example` | a wrong code gets the closed-beta tool error (never 401); `GET /api/mcp?code=` reports `valid`; the skill zip points at an https site |
 | Skill + docs | `skill/what-if/**` (four-language triggers, near-miss rule, read-backs, Berlin, by-hand path, price-change example, `references/berlin.md`), `src/mcp/instructions.ts`, README, PRD and PLAN v0.2 sections | SKILL.md ≤ 160 lines; instructions ≤ ~2,900 characters; README leads with the beta and has the env vars |
 | QA bot | checks for languages, codes, `/try`, the skill zip URL; judges re-run | loop 2 scores every component |
 
@@ -108,7 +108,5 @@ Then `npm run qa:dry` while fixing and one counted `npm run qa` for loop 3 (same
 ### Later (after the beta)
 
 - Model hiring and opening hours properly (today: the method on paper).
-- A calendar file (.ics) for the test's check-in days, generated in the browser.
-- A "log your result" screen at the end of `/try`, so owners without an AI app close the loop too.
 - What the minimum-wage step could cost a week, beside the price-change result (tagged as a guess until checked against payroll): moved into loop 3 as the optional `minimum_wage_hours_per_week`.
 - More cities and kinds of business, once the Berlin beta shows owners come back.

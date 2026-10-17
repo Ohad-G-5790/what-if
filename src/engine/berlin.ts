@@ -26,6 +26,8 @@ export const MIN_WAGE_2026 = 13.9;
 export const MIN_WAGE_2027 = 14.6;
 /** The rise on 1 Jan 2027: €14.60 − €13.90 = €0.70 more per hour. */
 export const MIN_WAGE_RISE_2027 = 0.7;
+/** Employer contributions on top of a wage, as a share of it: a rough guess (about 21% for employees; Minijobs cost more). Not a public fact. */
+export const EMPLOYER_SHARE_GUESS = 0.21;
 
 export type FactId = "vat_food_7" | "vat_drinks_19" | "vat_milk_takeaway_7" | "bmf_drinks_share_30" | "min_wage_2026" | "min_wage_2027";
 
