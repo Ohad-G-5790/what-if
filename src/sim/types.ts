@@ -101,6 +101,30 @@ export interface Rehearsal {
   interviews: { question: string; answers: { personaId: string; name: string; answer: string; method: ReactionMethod }[] }[];
   feed: FeedItem[];
   events: { beforeRound: number; text: string }[];
+  /** What customers can see of the change (never costs). Set by startRehearsal and rebuilt with it. */
+  scene?: RehearsalScene;
+  /** Segment weights the personas were drawn with, when the owner gave a mix (needed to rebuild the same people). */
+  customerMix?: Partial<Record<SegmentId, number>>;
+}
+
+/** The customer-visible side of the change, used to write briefs and rule-based reactions. */
+export interface RehearsalScene {
+  cafe: string;
+  currency: string;
+  /** Exactly what the sign says. */
+  board: string;
+  /** The deal price (lunch offer) or the new price (price change). */
+  price: number;
+  /** Price change: the old price. Lunch offer: same as `price`. */
+  oldPrice: number;
+  /** Lunch offer: what is in the deal. Price change: the item. */
+  contents: string;
+  /** Price change: the item ("flat white"). Lunch offer: "lunch". */
+  item: string;
+  /** Whether the owner pays to promote it (never how much). */
+  promoted: boolean;
+  /** "two-week". */
+  testLength: string;
 }
 
 export interface PersonaBrief {
