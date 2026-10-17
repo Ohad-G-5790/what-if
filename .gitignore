@@ -5,3 +5,4 @@ dist/
 demo/
 qa/reports/ui/
 *.log
+qa/reports/dry-run.*

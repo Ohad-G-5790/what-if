@@ -134,6 +134,7 @@ The contract between modules is in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md
 ```bash
 npm install
 npm run dev      # site + MCP on http://localhost:3000 (MCP at http://localhost:3000/api/mcp)
+npm run build    # Vercel Build Output in .vercel/output (static site, skill zip, /api/mcp function)
 npm test         # engine, rehearsal, report and MCP tests
 npm run qa       # QA bot: scores every part 1–10; passes at 8.5 or more
 ```
