@@ -1,4 +1,4 @@
-import { num, pct, price } from "./format.ts";
+import { num, pct, price, signedPct } from "./format.ts";
 import { getTemplate } from "./templates.ts";
 import type { FieldSpec, InputCheck, MissingInput, RawInputs, ResolvedInput, Source } from "./types.ts";
 
@@ -59,7 +59,7 @@ function normalise(f: FieldSpec, v: RawInputs[string], problems: string[]): numb
   let n: number;
   if (typeof v === "number") n = v;
   else {
-    const s = String(v).replace(/[€$£\s]/g, "").replace(",", ".");
+    const s = cleanNumber(String(v));
     const isPct = s.endsWith("%");
     n = Number(isPct ? s.slice(0, -1) : s);
     if (isPct) n /= 100;
@@ -74,6 +74,18 @@ function normalise(f: FieldSpec, v: RawInputs[string], problems: string[]): numb
     return undefined;
   }
   return n;
+}
+
+/**
+ * "€9,90" → "9.90", "1,500" / "€16,500" → "1500" / "16500", "1.500,50" → "1500.50",
+ * "−12 %" (typographic minus, as What-IF itself writes it) → "-12%", "9.90 EUR" → "9.90".
+ */
+function cleanNumber(raw: string): string {
+  let s = raw.replace(/[−–]/g, "-").replace(/(EUR|USD|GBP|CHF)/gi, "").replace(/[€$£\s]/g, "");
+  const comma = s.lastIndexOf(","), dot = s.lastIndexOf(".");
+  if (comma >= 0 && dot >= 0) s = comma > dot ? s.replace(/\./g, "").replace(",", ".") : s.replace(/,/g, "");
+  else if (comma >= 0) s = /^[+-]?[1-9]\d{0,2}(,\d{3})+%?$/.test(s) ? s.replace(/,/g, "") : s.replace(",", ".");
+  return s;
 }
 
 function derive(templateId: string, key: string, given: Map<string, number | string>): { value: number; note: string } | undefined {
@@ -97,11 +109,11 @@ function derive(templateId: string, key: string, given: Map<string, number | str
     const likely = n("volume_likely");
     if (key === "volume_low" && likely !== undefined) {
       const v = Math.max(-1, likely - 0.08);
-      return { value: v, note: `Cautious guess set to ${pct(v)} (8 points below your likely guess).` };
+      return { value: v, note: `Cautious guess set to ${signedPct(v)} (8 points below your likely guess).` };
     }
     if (key === "volume_high" && likely !== undefined) {
       const v = Math.min(0.05, likely + 0.04);
-      return { value: v, note: `Optimistic guess set to ${pct(v)} (4 points above your likely guess).` };
+      return { value: v, note: `Optimistic guess set to ${signedPct(v)} (4 points above your likely guess).` };
     }
   }
   return undefined;
@@ -142,8 +154,10 @@ export function show(f: Pick<FieldSpec, "unit">, v: number | string): string {
       return `${price(v)} a week`;
     case "EUR/month":
       return `${price(v)} a month`;
-    case "share":
-      return pct(v);
+    case "share": {
+      const digits = Number.isInteger(Math.round(v * 1e6) / 1e4) ? 0 : 1;
+      return v < 0 ? `−${pct(-v, digits)}` : pct(v, digits);
+    }
     case "customers/day":
       return `${num(v)} a day`;
     case "units/week":

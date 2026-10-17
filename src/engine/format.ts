@@ -11,6 +11,11 @@ export function sym(): string {
   return SYMBOL[currency] ?? "€";
 }
 
+/** The currency code money is currently formatted in ("EUR" when an unknown code was set). */
+export function getCurrency(): string {
+  return currency;
+}
+
 /** Money for totals: no cents above 100, a minus sign before the symbol. */
 export function money(n: number, cents = Math.abs(n) < 100): string {
   const abs = Math.abs(n);
@@ -38,6 +43,14 @@ export function round(n: number, digits = 2): number {
 
 export function signed(n: number): string {
   return n > 0 ? `+${money(n)}` : money(n);
+}
+
+/** A share as a percentage with its sign: +4%, −12%, 0%. One decimal only when needed (−9.2%). */
+export function signedPct(share: number, digits?: number): string {
+  const d = digits ?? (Number.isInteger(Math.round(share * 1e6) / 1e4) ? 0 : 1);
+  const body = pct(Math.abs(share), d);
+  if (body === pct(0, d)) return body;
+  return `${share > 0 ? "+" : "−"}${body}`;
 }
 
 export function plural(n: number, one: string, many = `${one}s`): string {
